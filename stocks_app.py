@@ -4,6 +4,7 @@ import pandas as pd
 from ta.trend import MACD
 import lxml
 from collections import defaultdict
+import plotly.graph_objects as go
 
 
 
@@ -47,20 +48,39 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
+def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
+    data = yf.download(tickers=stock_ticker, period=period, interval=interval)
+
+    fig = go.Figure(data=[go.Candlestick(x=data.index,
+                                         open=data['Open'],
+                                         high=data['High'],
+                                         low=data['Low'],
+                                         close=data['Close'])])
+
+    fig.update_layout(
+        title=f"{stock_ticker} Candlestick Chart",
+        xaxis_title="Date",
+        yaxis_title="Price",
+        xaxis_rangeslider_visible=False
+    )
+
+    return fig
 
 
 
+st.title("Chinese ADRs with the Current Price Above the 20-Day Moving Average and 5-Day MACD Line")
 
-st.title("Stocks with the Current Price Above the 20-Day Moving Average and 5-Day MACD Line")
+st.write("Fetching Chinese ADRs...")
+chinese_adrs = get_chinese_adrs()
 
-st.write("Fetching S&P 500 stock tickers and sectors...")
-sp500_tickers = get_sp500_tickers()
+st.write("Analyzing Chinese ADRs...")
+stocks_above_conditions = find_stocks_above_conditions(chinese_adrs)
 
-st.write("Analyzing stocks...")
-stocks_above_conditions = find_stocks_above_conditions(sp500_tickers)
-
-st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
+st.header("Chinese ADRs with the current price above the 20-day moving average and 5-day MACD line:")
 for sector, stocks in stocks_above_conditions.items():
     st.subheader(sector)
-    st.write(stocks)
+    selected_stock = st.selectbox(f"Select a stock from {sector}", stocks)
+    candlestick_chart = plot_candlestick_chart(selected_stock)
+    st.plotly_chart(candlestick_chart)
+
 
