@@ -68,7 +68,7 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
 
 
 
-st.title("S&P 500 Stocks with the Current Price Above the 20-Day Moving Average and 5-Day MACD Line")
+st.title("Stock Opportunity")
 
 st.write("Fetching S&P 500 stock tickers...")
 sp500_tickers = get_sp500_tickers()
