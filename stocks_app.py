@@ -68,15 +68,15 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
 
 
 
-st.title("Chinese ADRs with the Current Price Above the 20-Day Moving Average and 5-Day MACD Line")
+st.title("S&P 500 Stocks with the Current Price Above the 20-Day Moving Average and 5-Day MACD Line")
 
-st.write("Fetching Chinese ADRs...")
-chinese_adrs = get_chinese_adrs()
+st.write("Fetching S&P 500 stock tickers...")
+sp500_tickers = get_sp500_tickers()
 
-st.write("Analyzing Chinese ADRs...")
-stocks_above_conditions = find_stocks_above_conditions(chinese_adrs)
+st.write("Analyzing stocks...")
+stocks_above_conditions = find_stocks_above_conditions(sp500_tickers)
 
-st.header("Chinese ADRs with the current price above the 20-day moving average and 5-day MACD line:")
+st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
 for sector, stocks in stocks_above_conditions.items():
     st.subheader(sector)
     selected_stock = st.selectbox(f"Select a stock from {sector}", stocks)
