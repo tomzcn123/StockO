@@ -12,35 +12,43 @@ def get_sp500_tickers():
     return tickers
 
 
-def calculate_moving_average(stock_ticker, period='20d', interval='1d', window=20):
+def calculate_macd(stock_ticker, period='20d', interval='1d', window_fast=12, window_slow=26, window_sign=9):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
-    data['MovingAverage'] = data['Close'].rolling(window=window).mean()
+    macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
+    data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
     return data
 
-def find_stocks_above_moving_average(stock_list):
-    stocks_above_moving_average = []
+
+def find_stocks_above_conditions(stock_list):
+    stocks_above_conditions = []
 
     for stock in stock_list:
         try:
             data = calculate_moving_average(stock)
+            data = calculate_macd(stock, window_fast=5)
+            data = calculate_macd(stock)
 
-            if not data.empty and data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage']:
-                stocks_above_moving_average.append(stock)
+            if (not data.empty and
+                data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
+                data.iloc[-1]['Close'] > data.iloc[-1]['MACD_5_26_9']
+            ):
+                stocks_above_conditions.append(stock)
         except Exception as e:
             st.warning(f"Error processing stock {stock}: {e}")
 
-    return stocks_above_moving_average
+    return stocks_above_conditions
 
 
 
 
-st.title("Stocks with the Current Price Above the 20-Day Moving Average")
+st.title("Stocks with the Current Price Above the 20-Day Moving Average and 5-Day MACD Line")
 
 st.write("Fetching S&P 500 stock tickers...")
 sp500_tickers = get_sp500_tickers()
 
 st.write("Analyzing stocks...")
-stocks_above_moving_average = find_stocks_above_moving_average(sp500_tickers)
+stocks_above_conditions = find_stocks_above_conditions(sp500_tickers)
 
-st.header("Stocks with the current price above the 20-day moving average:")
-st.write(stocks_above_moving_average)
+st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
+st.write(stocks_above_conditions)
+
