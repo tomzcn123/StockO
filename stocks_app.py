@@ -11,7 +11,7 @@ def get_sp500_tickers():
     tickers = table['Symbol'].tolist()
     return tickers
 
-def calculate_moving_average(stock_ticker, period='20d', interval='1d', window=20):
+def calculate_moving_average(stock_ticker, period='100d', interval='1d', window=20):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     data['MovingAverage'] = data['Close'].rolling(window=window).mean()
     return data
