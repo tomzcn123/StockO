@@ -14,9 +14,10 @@ def get_sp500_tickers():
 
 def calculate_macd(stock_ticker, period='20d', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
-    macd_indicator = MACD(data['Close'], n_slow=26, n_fast=12, n_sign=9)
+    macd_indicator = MACD(data['Close'], window_slow=26, window_fast=12, window_sign=9)
     data['MACD'] = macd_indicator.macd()
     return data
+
 
 
 def find_stocks_above_macd(stock_list):
