@@ -37,9 +37,7 @@ def find_stocks_above_conditions(stock_list):
                 data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1]['MACD_5_26_9']
             ):
                 stocks_above_conditions.append(stock)
-            else:
-                st.write(f"No match for {stock}:")
-                st.write(data.tail(5))
+                
         except Exception as e:
             st.warning(f"Error processing stock {stock}: {e}")
 
