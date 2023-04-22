@@ -22,15 +22,14 @@ def calculate_macd(stock_ticker, period='20d', interval='1d', window_fast=12, wi
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
     return data
 
-
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = []
 
     for stock in stock_list:
         try:
-            data = calculate_moving_average(stock)
-            data = calculate_macd(stock, window_fast=5)
-            data = calculate_macd(stock)
+            data = (calculate_moving_average(stock)
+                    .pipe(calculate_macd, window_fast=5)
+                    .pipe(calculate_macd))
 
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
@@ -41,6 +40,7 @@ def find_stocks_above_conditions(stock_list):
             st.warning(f"Error processing stock {stock}: {e}")
 
     return stocks_above_conditions
+
 
 
 
