@@ -16,8 +16,7 @@ def calculate_moving_average(stock_ticker, period='20d', interval='1d', window=2
     data['MovingAverage'] = data['Close'].rolling(window=window).mean()
     return data
 
-def calculate_macd(stock_ticker, period='20d', interval='1d', window_fast=12, window_slow=26, window_sign=9):
-    data = yf.download(tickers=stock_ticker, period=period, interval=interval)
+def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9):
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
     return data
@@ -27,9 +26,9 @@ def find_stocks_above_conditions(stock_list):
 
     for stock in stock_list:
         try:
-            data = (calculate_moving_average(stock)
-                    .pipe(calculate_macd, window_fast=5)
-                    .pipe(calculate_macd))
+            data = calculate_moving_average(stock)
+            data = calculate_macd(data, window_fast=5)
+            data = calculate_macd(data)
 
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
