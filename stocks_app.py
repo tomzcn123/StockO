@@ -30,7 +30,7 @@ def find_stocks_above_macd(stock_list):
 
     return stocks_above_macd
 
-  st.title("Stocks with the Current Price Above the Daily 20 MACD")
+st.title("Stocks with the Current Price Above the Daily 20 MACD")
 
 st.write("Fetching S&P 500 stock tickers...")
 sp500_tickers = get_sp500_tickers()
