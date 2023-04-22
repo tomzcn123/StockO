@@ -16,10 +16,12 @@ def calculate_moving_average(stock_ticker, period='20d', interval='1d', window=2
     data['MovingAverage'] = data['Close'].rolling(window=window).mean()
     return data
 
-def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9):
+def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_window=5):
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
+    data[f'MACD_{window_fast}_{window_slow}_{window_sign}_MA_{macd_ma_window}'] = data[f'MACD_{window_fast}_{window_slow}_{window_sign}'].rolling(window=macd_ma_window).mean()
     return data
+
 
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = []
@@ -27,12 +29,12 @@ def find_stocks_above_conditions(stock_list):
     for stock in stock_list:
         try:
             data = calculate_moving_average(stock)
-            data = calculate_macd(data, window_fast=5)
+            data = calculate_macd(data, window_fast=5, macd_ma_window=5)
             data = calculate_macd(data)
 
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
-                data.iloc[-1]['Close'] > data.iloc[-1]['MACD_5_26_9']
+                data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1]['MACD_5_26_9']
             ):
                 stocks_above_conditions.append(stock)
         except Exception as e:
