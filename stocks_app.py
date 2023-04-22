@@ -3,6 +3,8 @@ import yfinance as yf
 import pandas as pd
 from ta.trend import MACD
 import lxml
+from collections import defaultdict
+
 
 
 def get_sp500_tickers():
