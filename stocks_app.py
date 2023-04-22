@@ -27,12 +27,13 @@ def find_stocks_above_macd(stock_list):
         try:
             data = calculate_macd(stock)
 
-            if data.iloc[-1]['Close'] > data.iloc[-1]['MACD']:
+            if not data.empty and data.iloc[-1]['Close'] > data.iloc[-1]['MACD']:
                 stocks_above_macd.append(stock)
         except Exception as e:
             st.warning(f"Error processing stock {stock}: {e}")
 
     return stocks_above_macd
+
 
 
 st.title("Stocks with the Current Price Above the Daily 20 MACD")
