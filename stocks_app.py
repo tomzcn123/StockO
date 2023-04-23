@@ -55,7 +55,7 @@ def find_stocks_above_conditions(stock_list):
 @st.cache
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
-    data = calculate_moving_average(data, window=20)
+    data_20 = calculate_moving_average(data, window=20)
     data_5 = calculate_moving_average(data, window=5)
 
     fig = go.Figure()
@@ -65,8 +65,8 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                                   low=data['Low'],
                                   close=data['Close'],
                                   name='Candlestick'))
-    fig.add_trace(go.Scatter(x=data.index,
-                             y=data['MovingAverage'],
+    fig.add_trace(go.Scatter(x=data_20.index,
+                             y=data_20['MovingAverage'],
                              mode='lines',
                              line=dict(color='green', width=1),
                              name='20-day Moving Average'))
@@ -80,6 +80,7 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                       yaxis_title='Price',
                       xaxis_rangeslider_visible=False)
     return fig
+
 
 
 st.title("Stock Opportunity")
