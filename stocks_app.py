@@ -21,7 +21,6 @@ def get_stock_sector(stock_ticker):
     sector = table.loc[table['Symbol'] == stock_ticker, 'GICS Sector'].iloc[0]
     return sector
 
-
 @st.cache
 def calculate_moving_average(stock_ticker, period='100d', interval='1d', window=20):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
@@ -34,31 +33,25 @@ def calculate_macd(stock_ticker, window_fast=12, window_slow=26, window_sign=9):
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
     return data
 
-
-
-
 @st.cache(suppress_st_warning=True)
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = defaultdict(list)
-
     for stock in stock_list:
         try:
-            data = (calculate_moving_average(stock)
+            stock_ticker = stock['Symbol']
+            data = (calculate_moving_average(stock_ticker)
                     .pipe(calculate_macd, window_fast=5)
                     .pipe(calculate_macd))
-
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MACD_5_26_9']
             ):
-                sector = get_stock_sector(stock)
+                sector = get_stock_sector(stock_ticker)
                 stocks_above_conditions[sector].append(stock)
-                print(f"Stock {stock} in sector {sector} meets the conditions.")  # Add this line
+                print(f"Stock {stock_ticker} in sector {sector} meets the conditions.")  # Add this line
         except Exception as e:
-            st.warning(f"Error processing stock {stock}: {e}")
-
+            st.warning(f"Error processing stock {stock['Symbol']}: {e}")
     return stocks_above_conditions
-
 
 
 @st.cache
@@ -67,43 +60,33 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d', window_fas
     macd_data_20 = calculate_macd(stock_ticker)
     macd_data_5 = calculate_macd(stock_ticker, window_fast=5, window_slow=20, window_sign=5)
     fig = go.Figure()
-
     fig.add_trace(go.Candlestick(x=data.index,
                                   open=data['Open'],
                                   high=data['High'],
                                   low=data['Low'],
                                   close=data['Close'],
                                   name='Candlestick'))
-
     fig.add_trace(go.Scatter(x=macd_data_20.index,
                              y=macd_data_20[f'MACD_12_26_9'],
                              mode='lines',
                              line=dict(color='green', width=1),
                              name='20-day MACD'))
-
     fig.add_trace(go.Scatter(x=macd_data_5.index,
                              y=macd_data_5[f'MACD_5_20_5'],
                              mode='lines',
                              line=dict(color='blue', width=1),
                              name='5-day MACD'))
-
     fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day MACD',
                       xaxis_title='Date',
                       yaxis_title='Price',
                       xaxis_rangeslider_visible=False)
-
     return fig
 
-
-
 st.title("Stock Opportunity")
-
 st.write("Fetching S&P 500 stock tickers...")
 sp500_tickers = get_sp500_tickers()
-
 st.write("Analyzing stocks...")
 stocks_above_conditions = find_stocks_above_conditions(sp500_tickers)
-
 st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
 for sector, stocks in stocks_above_conditions.items():
     st.subheader(sector)
