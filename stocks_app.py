@@ -91,7 +91,7 @@ sp500_tickers = get_sp500_tickers()
 st.write("Analyzing stocks...")
 stocks_above_conditions, errors = find_stocks_above_conditions(sp500_tickers)
 for error in errors:
-    st.warning(error)
+    st.warning(error)  # Display the error messages outside the cached function
 
 st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
 for sector, stocks in stocks_above_conditions.items():
