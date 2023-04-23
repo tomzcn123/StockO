@@ -44,7 +44,7 @@ def find_stocks_above_conditions(stock_list):
                     .pipe(calculate_macd, stock_ticker))
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
-                data.iloc[-1]['Close'] > data.iloc[-1]['MACD_5_20_5']
+                data.iloc[-1]['Close'] > data.iloc[-1]['MACD_12_26_9']
             ):
                 sector = get_stock_sector(stock_ticker)
                 stocks_above_conditions[sector].append(stock_ticker)
@@ -52,6 +52,7 @@ def find_stocks_above_conditions(stock_list):
         except Exception as e:
             st.warning(f"Error processing stock {stock_ticker}: {e}")
     return stocks_above_conditions
+
 
 
 
