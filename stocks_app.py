@@ -29,7 +29,8 @@ def calculate_macd(stock_ticker, window_fast=12, window_slow=26, window_sign=9):
 
 
 
-@st.cache
+
+@st.cache(suppress_st_warning=True)
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = defaultdict(list)
 
@@ -58,8 +59,6 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d', window_fas
 
     macd_data_20 = calculate_macd(stock_ticker)
     macd_data_5 = calculate_macd(stock_ticker, window_fast=5, window_slow=20, window_sign=5)
-
-    # Rest of the function remains the same
 
 
     fig = go.Figure()
