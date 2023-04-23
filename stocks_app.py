@@ -29,16 +29,16 @@ def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = defaultdict(list)
     error_messages = []
-
     for stock_info in stock_list:
         stock = stock_info['Symbol']
         sector = stock_info['GICS Sector']
         try:
-            data = calculate_moving_average(stock)
+            data = fetch_stock_data(stock)
+            data = calculate_moving_average(data)
             data = calculate_macd(data, window_fast=5, macd_ma_window=5)
             data = calculate_macd(data)
             if (not data.empty and
-                data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
+                data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage_20'] and
                 data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1]['MACD_5_26_9']
             ):
                 stocks_above_conditions[sector].append(stock)
@@ -80,8 +80,6 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                       yaxis_title='Price',
                       xaxis_rangeslider_visible=False)
     return fig
-
-
 
 st.title("Stock Opportunity")
 st.write("Fetching S&P 500 stock tickers...")
