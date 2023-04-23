@@ -6,7 +6,6 @@ import lxml
 from collections import defaultdict
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import copy
 
 def get_sp500_tickers():
     url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
@@ -18,11 +17,6 @@ def get_sp500_tickers():
 def fetch_stock_data(stock_ticker, period='100d', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     return data
-
-def calculate_moving_average(data, window=20):
-    data[f'MovingAverage_{window}'] = data['Close'].rolling(window=window).mean()
-    return data
-
 
 def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_window=5):
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
@@ -37,13 +31,14 @@ def find_stocks_above_conditions(stock_list):
         stock = stock_info['Symbol']
         sector = stock_info['GICS Sector']
         try:
-            data = calculate_moving_average(stock)
+            data = fetch_stock_data(stock)
+            data = calculate_moving_average(data)
             data = calculate_macd(data, window_fast=5, macd_ma_window=5)
             data = calculate_macd(data)
 
             if (not data.empty and
-                data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage_20'] and
-                data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1]['MACD_5_26_9']
+                data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
+                data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1][f'MACD_5_26_9']
             ):
                 stocks_above_conditions[sector].append(stock)
         except Exception as e:
@@ -51,41 +46,37 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
+def calculate_moving_average(data, window=20):
+    data[f'MovingAverage_{window}'] = data['Close'].rolling(window=window).mean()
+    return data
+
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
+    data = calculate_moving_average(data, window=20)
+    data = calculate_moving_average(data, window=5)
 
-    # Check if data is a DataFrame before processing
-    if isinstance(data, pd.DataFrame):
-        data = data.copy()
-
-        data_5 = calculate_moving_average(data, window=5)
-        data_20 = calculate_moving_average(data, window=20)
-
-        fig = go.Figure()
-
-        fig.add_trace(go.Candlestick(x=data.index,
-                                     open=data['Open'],
-                                     high=data['High'],
-                                     low=data['Low'],
-                                     close=data['Close'],
-                                     name='Candlestick'))
-
-        fig.add_trace(go.Scatter(x=data_5.index, y=data_5['MovingAverage_5'],
-                                 mode='lines', name='5-day Moving Average'))
-
-        fig.add_trace(go.Scatter(x=data_20.index, y=data_20['MovingAverage_20'],
-                                 mode='lines', name='20-day Moving Average'))
-
-        fig.update_layout(
-            title=f"{stock_ticker} Candlestick Chart",
-            xaxis_title="Date",
-            yaxis_title="Price",
-            xaxis_rangeslider_visible=False
-        )
-
-        return fig
-    else:
-        st.warning(f"Error processing stock {stock_ticker}: Invalid data received.")
+    fig = go.Figure()
+    fig.add_trace(go.Candlestick(x=data.index,
+                                  open=data['Open'],
+                                  high=data['High'],
+                                  low=data['Low'],
+                                  close=data['Close'],
+                                  name='Candlestick'))
+    fig.add_trace(go.Scatter(x=data.index,
+                             y=data['MovingAverage_20'],
+                             mode='lines',
+                             line=dict(color='green', width=1),
+                             name='20-day Moving Average'))
+    fig.add_trace(go.Scatter(x=data.index,
+                             y=data['MovingAverage_5'],
+                             mode='lines',
+                             line=dict(color='blue', width=1),
+                             name='5-day Moving Average'))
+    fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day Moving Averages',
+                      xaxis_title='Date',
+                      yaxis_title='Price',
+                      xaxis_rangeslider_visible=False)
+    return fig
 
 
 
