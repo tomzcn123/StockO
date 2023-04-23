@@ -52,10 +52,11 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
+@st.cache
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
-    data = calculate_macd(data, window_fast=5, macd_ma_window=5)
-    data = calculate_macd(data)
+    data = calculate_moving_average(data, window=20)
+    data_5 = calculate_moving_average(data, window=5)
 
     fig = go.Figure()
     fig.add_trace(go.Candlestick(x=data.index,
@@ -65,21 +66,20 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                                   close=data['Close'],
                                   name='Candlestick'))
     fig.add_trace(go.Scatter(x=data.index,
-                             y=data[f'MACD_12_26_9'],
+                             y=data['MovingAverage'],
                              mode='lines',
                              line=dict(color='green', width=1),
-                             name='20-day MACD'))
-    fig.add_trace(go.Scatter(x=data.index,
-                             y=data[f'MACD_5_26_9'],
+                             name='20-day Moving Average'))
+    fig.add_trace(go.Scatter(x=data_5.index,
+                             y=data_5['MovingAverage'],
                              mode='lines',
                              line=dict(color='blue', width=1),
-                             name='5-day MACD'))
-    fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day MACD',
+                             name='5-day Moving Average'))
+    fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day Moving Averages',
                       xaxis_title='Date',
                       yaxis_title='Price',
                       xaxis_rangeslider_visible=False)
     return fig
-
 
 
 st.title("Stock Opportunity")
