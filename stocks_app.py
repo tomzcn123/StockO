@@ -28,25 +28,25 @@ def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_
 @st.cache
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = defaultdict(list)
+    error_messages = []
 
     for stock_info in stock_list:
         stock = stock_info['Symbol']
         sector = stock_info['GICS Sector']
         try:
-            data = fetch_stock_data(stock)
-            data = calculate_moving_average(data)
+            data = calculate_moving_average(stock)
             data = calculate_macd(data, window_fast=5, macd_ma_window=5)
             data = calculate_macd(data)
-
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
-                data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1][f'MACD_5_26_9']
+                data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1]['MACD_5_26_9']
             ):
                 stocks_above_conditions[sector].append(stock)
         except Exception as e:
-            st.warning(f"Error processing stock {stock}: {e}")
+            error_messages.append(f"Error processing stock {stock}: {e}")
 
-    return stocks_above_conditions
+    return stocks_above_conditions, error_messages
+
 
 @st.cache
 def calculate_moving_average(data, window=20):
@@ -87,7 +87,10 @@ st.title("Stock Opportunity")
 st.write("Fetching S&P 500 stock tickers...")
 sp500_tickers = get_sp500_tickers()
 st.write("Analyzing stocks...")
-stocks_above_conditions = find_stocks_above_conditions(sp500_tickers)
+stocks_above_conditions, errors = find_stocks_above_conditions(sp500_tickers)
+for error in errors:
+    st.warning(error)
+
 st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
 for sector, stocks in stocks_above_conditions.items():
     st.subheader(sector)
