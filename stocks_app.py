@@ -25,7 +25,7 @@ def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}_MA_{macd_ma_window}'] = data[f'MACD_{window_fast}_{window_slow}_{window_sign}'].rolling(window=macd_ma_window).mean()
     return data
 
-@st.cache
+@st.cache(suppress_st_warning=True)
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = defaultdict(list)
     error_messages = []
