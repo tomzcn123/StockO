@@ -18,10 +18,12 @@ def fetch_stock_data(stock_ticker, period='100d', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     return data
 
+@st.cache
 def calculate_moving_average(data, window=20):
     data['MovingAverage'] = data['Close'].rolling(window=window).mean()
     return data
 
+@st.cache
 def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_window=5):
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
@@ -51,39 +53,33 @@ def find_stocks_above_conditions(stock_list):
     return stocks_above_conditions
 
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
-    data = fetch_stock_data(stock_ticker, period=period, interval=interval)
-    data = calculate_moving_average(data)
+    data = yf.download(tickers=stock_ticker, period=period, interval=interval)
+    data = calculate_macd(data, window_fast=5, macd_ma_window=5)
     data = calculate_macd(data)
-    data = calculate_macd(data, window_fast=5, window_slow=20, window_sign=5, macd_ma_window=5)
 
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.7, 0.3], vertical_spacing=0.02)
-
+    fig = go.Figure()
     fig.add_trace(go.Candlestick(x=data.index,
                                   open=data['Open'],
                                   high=data['High'],
                                   low=data['Low'],
                                   close=data['Close'],
-                                  name='Candlestick'),
-                  row=1, col=1)
-
-    fig.add_trace(go.Scatter(x=data.index, y=data['MovingAverage'], name='Moving Average', line=dict(color='purple')),
-                  row=1, col=1)
-
-    fig.add_trace(go.Bar(x=data.index, y=data['MACD_12_26_9'], name='MACD', marker_color='blue'),
-                  row=2, col=1)
-
-    fig.add_trace(go.Scatter(x=data.index, y=data['MACD_12_26_9_MA_5'], name='MACD Signal Line', line=dict(color='red')),
-                  row=2, col=1)
-
-    fig.update_layout(
-        title=f"{stock_ticker} Candlestick Chart with MACD",
-        xaxis_title="Date",
-        yaxis_title="Price",
-        xaxis_rangeslider_visible=False
-    )
-    fig.update_yaxes(title_text="MACD", row=2, col=1)
-
+                                  name='Candlestick'))
+    fig.add_trace(go.Scatter(x=data.index,
+                             y=data[f'MACD_12_26_9'],
+                             mode='lines',
+                             line=dict(color='green', width=1),
+                             name='20-day MACD'))
+    fig.add_trace(go.Scatter(x=data.index,
+                             y=data[f'MACD_5_26_9'],
+                             mode='lines',
+                             line=dict(color='blue', width=1),
+                             name='5-day MACD'))
+    fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day MACD',
+                      xaxis_title='Date',
+                      yaxis_title='Price',
+                      xaxis_rangeslider_visible=False)
     return fig
+
 
 
 st.title("Stock Opportunity")
