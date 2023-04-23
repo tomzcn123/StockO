@@ -15,6 +15,13 @@ def get_sp500_tickers():
     tickers = table[['Symbol', 'GICS Sector']].to_dict('records')
     return tickers
 
+def get_stock_sector(stock_ticker):
+    url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+    table = pd.read_html(url, header=0)[0]
+    sector = table.loc[table['Symbol'] == stock_ticker, 'GICS Sector'].iloc[0]
+    return sector
+
+
 @st.cache
 def calculate_moving_average(stock_ticker, period='100d', interval='1d', window=20):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
