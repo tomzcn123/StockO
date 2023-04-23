@@ -5,6 +5,7 @@ from ta.trend import MACD
 import lxml
 from collections import defaultdict
 import plotly.graph_objects as go
+import copy
 
 
 
@@ -18,14 +19,14 @@ def get_sp500_tickers():
 def calculate_moving_average(stock_ticker, period='100d', interval='1d', window=20):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     data['MovingAverage'] = data['Close'].rolling(window=window).mean()
-    return data
+    return copy.deepcopy(data)
 
 @st.cache
 def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_window=5):
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}_MA_{macd_ma_window}'] = data[f'MACD_{window_fast}_{window_slow}_{window_sign}'].rolling(window=macd_ma_window).mean()
-    return data
+    return copy.deepcopy(data)
 
 
 @st.cache
@@ -67,7 +68,7 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
         xaxis_rangeslider_visible=False
     )
 
-    return fig
+    return copy.deepcopy(fig)
 
 
 
