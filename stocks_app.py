@@ -5,7 +5,7 @@ from ta.trend import MACD
 import lxml
 from collections import defaultdict
 import plotly.graph_objects as go
-
+import plotly.subplots as sp
 
 
 def get_sp500_tickers():
@@ -56,23 +56,25 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     macd_data_20 = calculate_macd(data)
     macd_data_5 = calculate_macd(data, window_fast=5, window_slow=20, window_sign=5, macd_ma_window=5)
 
-    fig = go.Figure()
+    fig = sp.make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.7, 0.3], vertical_spacing=0.02)
+
     fig.add_trace(go.Candlestick(x=data.index,
                                   open=data['Open'],
                                   high=data['High'],
                                   low=data['Low'],
                                   close=data['Close'],
-                                  name='Candlestick'))
+                                  name='Candlestick'), row=1, col=1)
     fig.add_trace(go.Scatter(x=macd_data_20.index,
                              y=macd_data_20[f'MACD_12_26_9'],
                              mode='lines',
                              line=dict(color='green', width=1),
-                             name='20-day MACD'))
+                             name='20-day MACD'), row=2, col=1)
     fig.add_trace(go.Scatter(x=macd_data_5.index,
                              y=macd_data_5[f'MACD_5_20_5'],
                              mode='lines',
                              line=dict(color='blue', width=1),
-                             name='5-day MACD'))
+                             name='5-day MACD'), row=2, col=1)
+
     fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day MACD',
                       xaxis_title='Date',
                       yaxis_title='Price',
