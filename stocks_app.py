@@ -55,8 +55,8 @@ def find_stocks_above_conditions(stock_list):
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
 
-    macd_data_20 = calculate_macd(stock_ticker, period=period, interval=interval)
-    macd_data_5 = calculate_macd(stock_ticker, period=period, interval=interval, window_fast=5, window_slow=20, window_sign=5)
+    macd_data_20 = calculate_macd(stock_ticker)
+    macd_data_5 = calculate_macd(stock_ticker, window_fast=5, window_slow=20, window_sign=5)
 
     fig = go.Figure()
 
