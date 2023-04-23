@@ -50,24 +50,35 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
-@st.cache
+
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
+    macd_data_20 = calculate_macd(data)
+    macd_data_5 = calculate_macd(data, window_fast=5, window_slow=20, window_sign=5, macd_ma_window=5)
 
-    fig = go.Figure(data=[go.Candlestick(x=data.index,
-                                         open=data['Open'],
-                                         high=data['High'],
-                                         low=data['Low'],
-                                         close=data['Close'])])
-
-    fig.update_layout(
-        title=f"{stock_ticker} Candlestick Chart",
-        xaxis_title="Date",
-        yaxis_title="Price",
-        xaxis_rangeslider_visible=False
-    )
-
+    fig = go.Figure()
+    fig.add_trace(go.Candlestick(x=data.index,
+                                  open=data['Open'],
+                                  high=data['High'],
+                                  low=data['Low'],
+                                  close=data['Close'],
+                                  name='Candlestick'))
+    fig.add_trace(go.Scatter(x=macd_data_20.index,
+                             y=macd_data_20[f'MACD_12_26_9'],
+                             mode='lines',
+                             line=dict(color='green', width=1),
+                             name='20-day MACD'))
+    fig.add_trace(go.Scatter(x=macd_data_5.index,
+                             y=macd_data_5[f'MACD_5_20_5'],
+                             mode='lines',
+                             line=dict(color='blue', width=1),
+                             name='5-day MACD'))
+    fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day MACD',
+                      xaxis_title='Date',
+                      yaxis_title='Price',
+                      xaxis_rangeslider_visible=False)
     return fig
+
 
 
 
