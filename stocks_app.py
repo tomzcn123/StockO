@@ -13,17 +13,19 @@ def get_sp500_tickers():
     tickers = table[['Symbol', 'GICS Sector']].to_dict('records')
     return tickers
 
-
+@st.cache
 def fetch_stock_data(stock_ticker, period='100d', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     return data
 
+@st.cache
 def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_window=5):
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}_MA_{macd_ma_window}'] = data[f'MACD_{window_fast}_{window_slow}_{window_sign}'].rolling(window=macd_ma_window).mean()
     return data
 
+@st.cache
 def find_stocks_above_conditions(stock_list):
     stocks_above_conditions = defaultdict(list)
 
@@ -46,6 +48,7 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
+@st.cache
 def calculate_moving_average(data, window=20):
     data[f'MovingAverage_{window}'] = data['Close'].rolling(window=window).mean()
     return data
