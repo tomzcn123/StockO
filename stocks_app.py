@@ -51,7 +51,7 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
-@st.cache
+
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
 
