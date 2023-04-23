@@ -5,7 +5,7 @@ from ta.trend import MACD
 import lxml
 from collections import defaultdict
 import plotly.graph_objects as go
-import copy
+
 
 
 
@@ -19,14 +19,14 @@ def get_sp500_tickers():
 def calculate_moving_average(stock_ticker, period='100d', interval='1d', window=20):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     data['MovingAverage'] = data['Close'].rolling(window=window).mean()
-    return copy.deepcopy(data)
+    return data
 
-@st.cache
-def calculate_macd(data, window_fast=12, window_slow=26, window_sign=9, macd_ma_window=5):
+def calculate_macd(stock_ticker, window_fast=12, window_slow=26, window_sign=9):
+    data = yf.download(tickers=stock_ticker, period='1y', interval='1d')
     macd_indicator = MACD(data['Close'], window_slow=window_slow, window_fast=window_fast, window_sign=window_sign)
     data[f'MACD_{window_fast}_{window_slow}_{window_sign}'] = macd_indicator.macd()
-    data[f'MACD_{window_fast}_{window_slow}_{window_sign}_MA_{macd_ma_window}'] = data[f'MACD_{window_fast}_{window_slow}_{window_sign}'].rolling(window=macd_ma_window).mean()
-    return copy.deepcopy(data)
+    return data
+
 
 
 @st.cache
@@ -52,11 +52,15 @@ def find_stocks_above_conditions(stock_list):
     return stocks_above_conditions
 
 
-def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
+@st.cache
+def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d', window_fast=12, window_slow=26, window_sign=9):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
 
     macd_data_20 = calculate_macd(stock_ticker)
     macd_data_5 = calculate_macd(stock_ticker, window_fast=5, window_slow=20, window_sign=5)
+
+    # Rest of the function remains the same
+
 
     fig = go.Figure()
 
