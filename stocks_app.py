@@ -13,14 +13,14 @@ def get_sp500_tickers():
     tickers = table[['Symbol', 'GICS Sector']].to_dict('records')
     return tickers
 
-@st.cache
+
 def fetch_stock_data(stock_ticker, period='100d', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     return data
 
 @st.cache
 def calculate_moving_average(data, window=20):
-    data['MovingAverage'] = data['Close'].rolling(window=window).mean()
+    data[f'MovingAverage_{window}'] = data['Close'].rolling(window=window).mean()
     return data
 
 @st.cache
@@ -52,11 +52,10 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
-@st.cache
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
-    data_20 = calculate_moving_average(data, window=20)
-    data_5 = calculate_moving_average(data, window=5)
+    data = calculate_moving_average(data, window=20)
+    data = calculate_moving_average(data, window=5)
 
     fig = go.Figure()
     fig.add_trace(go.Candlestick(x=data.index,
@@ -65,13 +64,13 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                                   low=data['Low'],
                                   close=data['Close'],
                                   name='Candlestick'))
-    fig.add_trace(go.Scatter(x=data_20.index,
-                             y=data_20['MovingAverage'],
+    fig.add_trace(go.Scatter(x=data.index,
+                             y=data['MovingAverage_20'],
                              mode='lines',
                              line=dict(color='green', width=1),
                              name='20-day Moving Average'))
-    fig.add_trace(go.Scatter(x=data_5.index,
-                             y=data_5['MovingAverage'],
+    fig.add_trace(go.Scatter(x=data.index,
+                             y=data['MovingAverage_5'],
                              mode='lines',
                              line=dict(color='blue', width=1),
                              name='5-day Moving Average'))
@@ -80,7 +79,6 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                       yaxis_title='Price',
                       xaxis_rangeslider_visible=False)
     return fig
-
 
 
 st.title("Stock Opportunity")
