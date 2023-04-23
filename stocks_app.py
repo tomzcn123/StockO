@@ -40,18 +40,19 @@ def find_stocks_above_conditions(stock_list):
         try:
             stock_ticker = stock['Symbol']
             data = (calculate_moving_average(stock_ticker)
-                    .pipe(calculate_macd, window_fast=5)
-                    .pipe(calculate_macd))
+                    .pipe(calculate_macd, stock_ticker, window_fast=5, window_slow=20, window_sign=5)
+                    .pipe(calculate_macd, stock_ticker))
             if (not data.empty and
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage'] and
-                data.iloc[-1]['Close'] > data.iloc[-1]['MACD_5_26_9']
+                data.iloc[-1]['Close'] > data.iloc[-1]['MACD_5_20_5']
             ):
                 sector = get_stock_sector(stock_ticker)
-                stocks_above_conditions[sector].append(stock)
-                print(f"Stock {stock_ticker} in sector {sector} meets the conditions.")  # Add this line
+                stocks_above_conditions[sector].append(stock_ticker)
+                print(f"Stock {stock_ticker} in sector {sector} meets the conditions.")
         except Exception as e:
-            st.warning(f"Error processing stock {stock['Symbol']}: {e}")
+            st.warning(f"Error processing stock {stock_ticker}: {e}")
     return stocks_above_conditions
+
 
 
 @st.cache
