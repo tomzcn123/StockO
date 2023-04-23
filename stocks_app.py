@@ -51,39 +51,41 @@ def find_stocks_above_conditions(stock_list):
 
     return stocks_above_conditions
 
-
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
-    
-    # Create a copy of the DataFrame before modifying it
-    data = data.copy()
-    
-    data_5 = calculate_moving_average(data, window=5)
-    data_20 = calculate_moving_average(data, window=20)
 
-    fig = go.Figure()
+    # Check if data is a DataFrame before processing
+    if isinstance(data, pd.DataFrame):
+        data = data.copy()
 
-    fig.add_trace(go.Candlestick(x=data.index,
-                                 open=data['Open'],
-                                 high=data['High'],
-                                 low=data['Low'],
-                                 close=data['Close'],
-                                 name='Candlestick'))
+        data_5 = calculate_moving_average(data, window=5)
+        data_20 = calculate_moving_average(data, window=20)
 
-    fig.add_trace(go.Scatter(x=data_5.index, y=data_5['MovingAverage_5'],
-                             mode='lines', name='5-day Moving Average'))
+        fig = go.Figure()
 
-    fig.add_trace(go.Scatter(x=data_20.index, y=data_20['MovingAverage_20'],
-                             mode='lines', name='20-day Moving Average'))
+        fig.add_trace(go.Candlestick(x=data.index,
+                                     open=data['Open'],
+                                     high=data['High'],
+                                     low=data['Low'],
+                                     close=data['Close'],
+                                     name='Candlestick'))
 
-    fig.update_layout(
-        title=f"{stock_ticker} Candlestick Chart",
-        xaxis_title="Date",
-        yaxis_title="Price",
-        xaxis_rangeslider_visible=False
-    )
+        fig.add_trace(go.Scatter(x=data_5.index, y=data_5['MovingAverage_5'],
+                                 mode='lines', name='5-day Moving Average'))
 
-    return fig
+        fig.add_trace(go.Scatter(x=data_20.index, y=data_20['MovingAverage_20'],
+                                 mode='lines', name='20-day Moving Average'))
+
+        fig.update_layout(
+            title=f"{stock_ticker} Candlestick Chart",
+            xaxis_title="Date",
+            yaxis_title="Price",
+            xaxis_rangeslider_visible=False
+        )
+
+        return fig
+    else:
+        st.warning(f"Error processing stock {stock_ticker}: Invalid data received.")
 
 
 
