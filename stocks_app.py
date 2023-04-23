@@ -51,6 +51,7 @@ def find_stocks_above_conditions(stock_list):
     return stocks_above_conditions
 
 
+@st.cache
 def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
     data = yf.download(tickers=stock_ticker, period=period, interval=interval)
     macd_data_20 = calculate_macd(data)
@@ -69,17 +70,28 @@ def plot_candlestick_chart(stock_ticker, period='3mo', interval='1d'):
                              mode='lines',
                              line=dict(color='green', width=1),
                              name='20-day MACD'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=macd_data_20.index,
+                             y=macd_data_20[f'MACD_12_26_9_MA_5'],
+                             mode='lines',
+                             line=dict(color='red', width=1),
+                             name='20-day MACD Signal Line'), row=2, col=1)
     fig.add_trace(go.Scatter(x=macd_data_5.index,
                              y=macd_data_5[f'MACD_5_20_5'],
                              mode='lines',
                              line=dict(color='blue', width=1),
                              name='5-day MACD'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=macd_data_5.index,
+                             y=macd_data_5[f'MACD_5_20_5_MA_5'],
+                             mode='lines',
+                             line=dict(color='magenta', width=1),
+                             name='5-day MACD Signal Line'), row=2, col=1)
 
     fig.update_layout(title=f'{stock_ticker} Candlestick Chart with 20-day and 5-day MACD',
                       xaxis_title='Date',
                       yaxis_title='Price',
                       xaxis_rangeslider_visible=False)
     return fig
+
 
 
 
