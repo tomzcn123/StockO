@@ -10,7 +10,7 @@ from plotly.subplots import make_subplots
 def get_sp500_tickers():
     url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
     table = pd.read_html(url, header=0)[0]
-    tickers = table[['Symbol', 'GICS Sector']].to_dict('records')
+    tickers = table[['Symbol', 'GICS Sector', 'Security']].to_dict('records')
     return tickers
 
 @st.cache
@@ -40,6 +40,7 @@ def find_stocks_above_conditions(stock_list):
     for stock_info in stock_list:
         stock = stock_info['Symbol']
         sector = stock_info['GICS Sector']
+        name = stock_info['Security']
         try:
             data = fetch_stock_data(stock)
             data = calculate_moving_average(data)
@@ -49,11 +50,12 @@ def find_stocks_above_conditions(stock_list):
                 data.iloc[-1]['Close'] > data.iloc[-1]['MovingAverage_20'] and
                 data.iloc[-1][f'MACD_5_26_9_MA_5'] > data.iloc[-1]['MACD_5_26_9']
             ):
-                stocks_above_conditions[sector].append(stock)
+                stocks_above_conditions[sector].append((stock, name))
         except Exception as e:
             error_messages.append(f"Error processing stock {stock}: {e}")
 
     return stocks_above_conditions, error_messages
+
 
 
 
@@ -96,7 +98,9 @@ for error in errors:
 st.header("Stocks with the current price above the 20-day moving average and 5-day MACD line:")
 for sector, stocks in stocks_above_conditions.items():
     st.subheader(sector)
-    selected_stock = st.selectbox(f"Select a stock from {sector}", stocks)
-    candlestick_chart = plot_candlestick_chart(selected_stock)
+    selected_stock = st.selectbox(f"Select a stock from {sector}", stocks, format_func=lambda x: f"{x[1]} ({x[0]})")
+    st.write(f"Selected stock: {selected_stock[1]} ({selected_stock[0]})")
+    candlestick_chart = plot_candlestick_chart(selected_stock[0])
     st.plotly_chart(candlestick_chart)
+
 
